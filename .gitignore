@@ -1,0 +1,8 @@
+
+*
+
+!screenshot/
+!screenshot/**
+!.gitignore
+!README.md
+!grafAusSigma.py
