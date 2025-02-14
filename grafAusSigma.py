@@ -19,22 +19,20 @@ class Ui_MainWindow(object):
         graf.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         graf.setAttribute(QtCore.Qt.WA_TranslucentBackground)
 
-        self.offset = None  # Устанавливаем атрибут для прозрачного окна
+        self.offset = None 
 
-        # Корректная настройка центрального виджета
         self.centralwidget = QtWidgets.QWidget(graf)
         self.centralwidget.setObjectName("centralwidget")
-        self.centralwidget.setStyleSheet("background: transparent;")  # Фоновый виджет прозрачный
+        self.centralwidget.setStyleSheet("background: transparent;") 
         graf.setCentralWidget(self.centralwidget)
 
-        # Создаем виджет для градиентного фона
         self.gradient_background = QtWidgets.QLabel(self.centralwidget)
         self.gradient_background.setGeometry(QtCore.QRect(0, 0, graf.width(), graf.height()))
         self.gradient_background.setStyleSheet("background-color: rgba(11, 33, 43, 0.95); border: 2px solid #70E0D0;")
         self.gradient_background.lower()
-        qr = graf.frameGeometry()  # Получаем геометрию окна
-        cp = QtWidgets.QDesktopWidget().availableGeometry().center()  # Центр экрана
-        qr.moveCenter(cp)  # Перемещаем геометрию окна в центр экрана
+        qr = graf.frameGeometry() 
+        cp = QtWidgets.QDesktopWidget().availableGeometry().center() 
+        qr.moveCenter(cp) 
         graf.move(qr.topLeft())
 
         self.noise = None
@@ -328,8 +326,8 @@ class Ui_MainWindow(object):
         self.frame_Error.setObjectName("frame_Error")
         self.add_shadow_effect(self.frame_Error, x_offset=6, y_offset=8, blur_radius=25)
         self.label_error_value = QtWidgets.QLabel(self.frame_Error)
-        self.label_error_value.setGeometry(QtCore.QRect(0, 0, 105, 35))  # Размеры совпадают с frame_Error
-        self.label_error_value.setStyleSheet("color: white; background: transparent;")  # Белый текст на прозрачном фоне
+        self.label_error_value.setGeometry(QtCore.QRect(0, 0, 105, 35)) 
+        self.label_error_value.setStyleSheet("color: white; background: transparent;") 
         font = QtGui.QFont()
         font.setPointSize(15)
         self.label_error_value.setFont(font)
@@ -612,12 +610,10 @@ class Ui_MainWindow(object):
         self.pushButton_Exit.clicked.connect(self.exit)
 
     def mousePressEvent(self, event):
-        """Сохраняем начальную позицию мыши при нажатии."""
         if event.button() == QtCore.Qt.LeftButton:
             self.offset = event.globalPos() - self.graf.frameGeometry().topLeft()
 
     def mouseMoveEvent(self, event):
-        """Реализуем перемещение окна при движении мыши."""
         if self.offset is not None and event.buttons() == QtCore.Qt.LeftButton:
             self.graf.move(event.globalPos() - self.offset)
 
@@ -743,10 +739,8 @@ class Ui_MainWindow(object):
         )
 
     def generate_noise(self, length):
-        # Получение значений от пользователя
-        power_awgn = self.spin_awgn_1.value()  # Мощность шума
+        power_awgn = self.spin_awgn_1.value() 
 
-        # Если мощность шума <= 0, сам шум не добавляется
         if power_awgn <= 0:
             noise = np.zeros(length)
             print(f"[DEBUG] Генерация шума отключена (мощность {power_awgn})")
@@ -754,47 +748,39 @@ class Ui_MainWindow(object):
             self.spin_Sigma.setValue(0.0)
             return noise
 
-        # Вычисляем стандартное отклонение шума (σ)
         sigma_awgn = np.sqrt(power_awgn)
 
-        self.spin_Sigma.setMinimum(0.0)  # Устанавливаем минимальное значение
-        self.spin_Sigma.setValue(sigma_awgn)  # Устанавливаем значение σ
+        self.spin_Sigma.setMinimum(0.0) 
+        self.spin_Sigma.setValue(sigma_awgn) 
 
-        # Генерация шума с заданным средним значением (sigma) и стандартным отклонением
         noise = np.random.normal(0, sigma_awgn, length)
         print(f"[DEBUG] Генерация шума: Мощность={power_awgn}, Среднекв. отклонение={sigma_awgn:.3f}, "
               f"Мин={np.min(noise):.3f}, Макс={np.max(noise):.3f}, Среднее={np.mean(noise):.3f}")
         return noise
 
     def func_Sigma(self):
-        # Получение сигналов F1 и F2
         signal_1, t_1 = self.func_f1()
         signal_2, t_2 = self.func_f2()
 
-        # Генерация шума
         noise = self.generate_noise(len(t_1))
 
-        # Сумма сигналов с шумом
         signal_noisy = signal_1 + signal_2 + noise
 
-        # Нормализация сигнала: убираем DC-компонент и масштабируем в диапазон [-1, 1]
-        signal_noisy -= np.mean(signal_noisy)  # Убираем среднее значение
-        signal_noisy /= np.max(np.abs(signal_noisy))  # Нормализация
+        signal_noisy -= np.mean(signal_noisy) 
+        signal_noisy /= np.max(np.abs(signal_noisy))
 
         print(
             f"[DEBUG] Итоговый сигнал: Мин={np.min(signal_noisy):.3f}, Макс={np.max(signal_noisy):.3f}, Среднее={np.mean(signal_noisy):.3f}")
 
-        # Отображение итого сигнала
         self.plot_Fsample.clear()
         self.plot_Fsample.plot(t_1, signal_noisy, pen='y')
 
         return signal_noisy, t_1
 
     def func_Sigma_spectrum(self):
-        # Получение сигналов
+
         signal_noisy, t_1 = self.func_Sigma()
 
-        # Проверяем, что сигнал корректный
         if signal_noisy is None or len(signal_noisy) == 0:
             print("[ERROR] Итоговый сигнал пустой или некорректный!")
             return
@@ -802,10 +788,8 @@ class Ui_MainWindow(object):
         print("[DEBUG] Итоговый сигнал до FFT: "
               f"Мин={np.min(signal_noisy):.3f}, Макс={np.max(signal_noisy):.3f}, Среднее={np.mean(signal_noisy):.3f}")
 
-        # Расчёт спектра
         spectrum_noisy = np.fft.fft(signal_noisy) / np.sqrt(len(signal_noisy))
 
-        # Частоты спектра
         freq = np.fft.fftfreq(len(signal_noisy), 1 / self.spin_fsample.value())
 
         energy_time = np.sum(signal_noisy ** 2)
@@ -820,9 +804,8 @@ class Ui_MainWindow(object):
         print("[DEBUG] Энергия до фильтрации:", np.sum(signal_noisy ** 2))
         print("[DEBUG] Энергия спектра:", np.sum(np.abs(spectrum_noisy) ** 2))
 
-        # Отображение спектра на графике
         self.plot_spectr_Fsample.clear()
-        self.plot_spectr_Fsample.plot(freq[:len(freq) // 2],  # Отображаем только положительные частоты
+        self.plot_spectr_Fsample.plot(freq[:len(freq) // 2], 
                                       np.abs(spectrum_noisy)[:len(spectrum_noisy) // 2],
                                       pen='y')
         self.plot_spectr_Fsample.setXRange(0, self.spin_fsample.value() / 2)
@@ -830,10 +813,7 @@ class Ui_MainWindow(object):
         return spectrum_noisy
 
     def band_pass_filter(self, signal, fs, lowcut, highcut, order=4):
-        """
-        Полосовой фильтр (BPF): Пропускает частоты в диапазоне [lowcut, highcut].
-        """
-        nyquist = 0.5 * fs  # Частота Найквиста
+        nyquist = 0.5 * fs  
         low = lowcut / nyquist
         high = highcut / nyquist
         b, a = butter(order, [low, high], btype="band")
@@ -842,11 +822,7 @@ class Ui_MainWindow(object):
         return filtered_signal
 
     def narrow_band_filter(self, signal, fs, center_freq, bandwidth=2, order=4):
-        """
-        Узкополосный фильтр (NBF): Пропускает частоты в диапазоне
-        [center_freq - bandwidth, center_freq + bandwidth].
-        """
-        nyquist = 0.5 * fs  # Частота Найквиста
+        nyquist = 0.5 * fs 
         low = (center_freq - bandwidth) / nyquist
         high = (center_freq + bandwidth) / nyquist
         b, a = butter(order, [low, high], btype="band")
@@ -859,20 +835,19 @@ class Ui_MainWindow(object):
         return filtered_signal
 
     def detect_f1_f2(self):
-        f1 = self.spin_F1.value()  # Центральная частота F1
-        f2 = self.spin_F2.value()  # Центральная частота F2
-        delta_f = 15  # Ширина полосового фильтра (± от центральной частоты)
-        narrow_bandwidth = 7  # Ширина узкополосного фильтра (± от центральной частоты)
-        fs = self.spin_fsample.value()  # Частота дискретизации
+        f1 = self.spin_F1.value() 
+        f2 = self.spin_F2.value() 
+        delta_f = 15 
+        narrow_bandwidth = 7 
+        fs = self.spin_fsample.value() 
 
-        signal_noisy, _ = self.func_Sigma()  # Получаем только сигнал без временной шкалы
+        signal_noisy, _ = self.func_Sigma() 
 
         if signal_noisy is None:
             print("Ошибка: невозможно получить спектр!")
             self.error_message.setText("Ошибка: невозможно получить спектр!")
             return None
 
-        # Этап 1: Полосовой фильтр (BPF) вокруг F1 и F2
         filtered_signal_bpf = self.band_pass_filter(
             signal_noisy, fs, min(f1, f2) - delta_f, max(f1, f2) + delta_f, order=3
         )
@@ -892,10 +867,8 @@ class Ui_MainWindow(object):
         print(f"[DEBUG] NBF (F1) сигнал: Мин={np.min(filtered_signal_f1):.3f}, Макс={np.max(filtered_signal_f1):.3f}")
         print(f"[DEBUG] NBF (F2) сигнал: Мин={np.min(filtered_signal_f2):.3f}, Макс={np.max(filtered_signal_f2):.3f}")
 
-        # Рассчитываем спектры
         n_fft = 2 ** np.ceil(np.log2(len(filtered_signal_f1))).astype(int)
 
-        # Считаем спектры с новым n_fft
         spectrum_f1 = np.fft.fft(filtered_signal_f1, n=n_fft)
         spectrum_f2 = np.fft.fft(filtered_signal_f2, n=n_fft)
 
@@ -904,15 +877,12 @@ class Ui_MainWindow(object):
         positive_spectrum_f1 = np.abs(spectrum_f1)[:len(spectrum_f1) // 2]
         positive_spectrum_f2 = np.abs(spectrum_f2)[:len(spectrum_f2) // 2]
 
-        # Этап 4: Поиск всех пиков
-        # Для F1
         peaks_f1, properties_f1 = find_peaks(
             positive_spectrum_f1, height=0.15 * max(positive_spectrum_f1), distance=10
         )
         peak_freqs_f1 = positive_freqs[peaks_f1]
         peak_heights_f1 = properties_f1["peak_heights"]
 
-        # Для F2
         peaks_f2, properties_f2 = find_peaks(
             positive_spectrum_f2, height=0.15 * max(positive_spectrum_f2), distance=10
         )
@@ -922,18 +892,14 @@ class Ui_MainWindow(object):
         print(f"[DEBUG] Найденные пики F1: {peak_freqs_f1}, с амплитудами: {peak_heights_f1}")
         print(f"[DEBUG] Найденные пики F2: {peak_freqs_f2}, с амплитудами: {peak_heights_f2}")
 
-        # Находим самый высокий пик рядом с F1 и F2
         closest_freq_1, closest_freq_2 = None, None
 
-        # Для частот вокруг F1
-        if len(peak_freqs_f1) > 0:  # Если найдены пики
+        if len(peak_freqs_f1) > 0: 
             closest_freq_1 = max(peak_freqs_f1, key=lambda x: abs(x - f1))
 
-        # Для частот вокруг F2
-        if len(peak_freqs_f2) > 0:  # Если найдены пики
+        if len(peak_freqs_f2) > 0: 
             closest_freq_2 = max(peak_freqs_f2, key=lambda x: abs(x - f2))
 
-        # Проверим, найдены ли частоты
         if closest_freq_1 is None:
             print(f"[WARNING] Невозможно найти пиковую частоту в окрестности F1 ({f1} Гц)")
             self.error_message.setText(f"[ERROR] Не найден пик для F1!")
@@ -944,37 +910,30 @@ class Ui_MainWindow(object):
             self.error_message.setText(f"[ERROR] Не найден пик для F2!")
             return None
 
-        # Лог результатов
         print(f"[DEBUG] Ближайшая частота к F1: {closest_freq_1} Гц")
         print(f"[DEBUG] Ближайшая частота к F2: {closest_freq_2} Гц")
 
-        # Рассчитываем относительные ошибки
         error_1 = abs((closest_freq_1 - f1) / f1) * 100
         error_2 = abs((closest_freq_2 - f2) / f2) * 100
-        error = (error_1 + error_2) / 2  # Средняя ошибка
+        error = (error_1 + error_2) / 2 
 
-        # Выводим значения в отладочной информации
         print(f"[DEBUG] Ближайшая частота для F1: {closest_freq_1}")
         print(f"[DEBUG] Ближайшая частота для F2: {closest_freq_2}")
         print(f"[DEBUG] Ошибки: F1 = {error_1:.2f}%, F2 = {error_2:.2f}%")
 
-        # Обновляем интерфейс
         if hasattr(self, "label_error_value"):
             self.label_error_value.setText(f"{error:.3f}%")
 
         if hasattr(self, "label_Rot_Grun"):
             if error >= 15:
-                # Если ошибка больше или равна 5, красный цвет
                 self.label_Rot_Grun.setStyleSheet(
                     "background-color: rgb(255, 38, 28); border-radius: 30px"
                 )
             else:
-                # Если ошибка меньше 5, зелёный цвет
                 self.label_Rot_Grun.setStyleSheet(
                     "background-color: rgb(38, 255, 28); border-radius: 30px"
                 )
 
-        # Записываем значения в GUI
         if hasattr(self, "spin_detector_f1") and hasattr(self, "spin_detector_f2"):
             self.spin_detector_f1.setText(f"{closest_freq_1:.3f}")
             self.spin_detector_f2.setText(f"{closest_freq_2:.3f}")
@@ -987,20 +946,16 @@ class Ui_MainWindow(object):
         Fa1 = f1 * 0.85
         Fa2 = f2 * 1.15
 
-        # Нормализация частот для фильтра
         low = Fa1 / nyq
         high = Fa2 / nyq
 
         if 0 < low < high < 1:
-            # Создаем и применяем полосовой фильтр Баттерворта на основе найденных частот
             b, a = butter(4, [low, high], btype='band')
             filtered_signal = lfilter(b, a, signal_noisy)
 
-            # Пример сглаживания: используем скользящее среднее
             window_size = max(3, len(t_1) // 10)
             smooth_signal = np.convolve(filtered_signal, np.ones(window_size) / window_size, mode='same')
 
-            # Отображение отфильтрованного и сглаженного сигнала во временной области
             self.plot_nach_Filter.clear()
             self.plot_nach_Filter.plot(t_1, smooth_signal, pen='m')
             return smooth_signal, t_1
@@ -1012,34 +967,26 @@ class Ui_MainWindow(object):
     def plot_filtered_spectrum(self):
         spectrum_noisy = self.func_Sigma_spectrum()
 
-        # Задаем параметры фильтрации
         fs = self.spin_fsample.value()
         nyq = 0.5 * fs
         f1 = self.spin_F1.value()
         f2 = self.spin_F2.value()
 
-        # Расчет границ фильтрации
         Fa1 = max(0.01, min(f1, f2) * 0.85)
         Fa2 = max(f1, f2) * 1.15
 
-        # Нормализация границ
         low = Fa1 / nyq
         high = Fa2 / nyq
         if 0 < low < high < 1:
-            # Создаем полосовой фильтр Баттерворта
             b, a = butter(4, [low, high], btype='band')
 
-            # Преобразование спектра в временную область
             noisy_signal = np.fft.ifft(spectrum_noisy)
 
-            # Применение фильтра к сигналу
             filtered_signal = lfilter(b, a, noisy_signal)
             filtered_spectrum = np.abs(np.fft.fft(filtered_signal)) ** 2
 
-            # Частоты для отображения на графике
             freq = np.fft.fftfreq(len(filtered_signal), 1 / fs)
 
-            # Отображение фильтрованного спектра
             self.plot_spectr_nach_Filter.clear()
             self.plot_spectr_nach_Filter.plot(
                 freq[:len(freq) // 2],
@@ -1058,7 +1005,6 @@ class Ui_MainWindow(object):
         F_l = f1 * 0.95
         F_h = f1 * 1.05
 
-        # Нормализация частот для фильтра
         low = F_l / nyq
         high = F_h / nyq
 
@@ -1073,7 +1019,6 @@ class Ui_MainWindow(object):
         window_size = max(1, len(t_1) // 80)
         smooth_signal = np.convolve(filtered_signal, np.ones(window_size) / window_size, mode='same')
 
-        # Отображение отфильтрованного и сглаженного сигнала во временной области
         self.plot_nach_FilterF1.clear()
         self.plot_nach_FilterF1.plot(t_1, smooth_signal, pen='w')
 
@@ -1083,28 +1028,21 @@ class Ui_MainWindow(object):
         nyq = 0.5 * fs
         f1 = self.spin_F1.value()
 
-        # Расчет границ фильтрации
         Fa1 = max(0.01, f1 * 0.95)
         Fa2 = f1 * 1.05
 
-        # Нормализация границ
         low = Fa1 / nyq
         high = Fa2 / nyq
         if 0 < low < high < 1:
-            # Создаем полосовой фильтр Баттерворта
             b, a = butter(4, [low, high], btype='band')
 
-            # Преобразование спектра в временную область
             noisy_signal = np.fft.ifft(spectrum_noisy).real
 
-            # Применение фильтра к сигналу
             filtered_signal = lfilter(b, a, noisy_signal)
             filtered_spectrum = np.abs(np.fft.fft(filtered_signal)) ** 2
 
-            # Частоты для отображения на графике
             freq = np.fft.fftfreq(len(filtered_signal), 1 / fs)
 
-            # Отображение фильтрованного спектра
             self.plot_spectr_nach_FilterF1.clear()
             self.plot_spectr_nach_FilterF1.plot(
                 freq[:len(freq) // 2],
